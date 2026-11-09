@@ -9,3 +9,5 @@ os.makedirs(SAIDA, exist_ok=True)
 
 arquivos = [f for f in os.listdir(PASTA)
             if f.lower().endswith((".pptx", ".ppt")) and not f.startswith("~$")]
+
+ppt = win32com.client.Dispatch("PowerPoint.Application")
