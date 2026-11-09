@@ -1,14 +1,24 @@
 import os
+import re
 import sys
 import win32com.client
 
-# Pasta com os PPTX (pode passar como argumento: python folhetos.py "C:\\Aulas")
 PASTA = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
-SAIDA = os.path.join(PASTA, "Folhetos")
-os.makedirs(SAIDA, exist_ok=True)
+
+# Descobre o próximo número: slides1, slides2, slides3...
+numeros = [int(m.group(1)) for d in os.listdir(PASTA)
+           if (m := re.fullmatch(r"slides(\d+)", d)) and os.path.isdir(os.path.join(PASTA, d))]
+execucao = max(numeros, default=0) + 1
+
+SAIDA = os.path.join(PASTA, f"slides{execucao}")
+os.makedirs(SAIDA)
 
 arquivos = [f for f in os.listdir(PASTA)
             if f.lower().endswith((".pptx", ".ppt")) and not f.startswith("~$")]
+
+if not arquivos:
+    os.rmdir(SAIDA)
+    sys.exit("Nenhum arquivo PPTX encontrado.")
 
 ppt = win32com.client.Dispatch("PowerPoint.Application")
 
@@ -17,9 +27,8 @@ try:
         origem = os.path.abspath(os.path.join(PASTA, nome))
         destino = os.path.abspath(os.path.join(SAIDA, os.path.splitext(nome)[0] + ".pdf"))
         try:
-            # ReadOnly=True, Untitled=False, WithWindow=False
             pres = ppt.Presentations.Open(origem, True, False, False)
-            # (Caminho, PDF=2, Intent=Print=2, FrameSlides=False, HandoutOrder=1, OutputType=3 slides/página)
+            # PDF=2, Intent=Print=2, FrameSlides=False, HandoutOrder=1, OutputType=3 slides/página
             pres.ExportAsFixedFormat(destino, 2, 2, False, 1, 3)
             pres.Close()
             print(f"[{i}/{len(arquivos)}] OK: {nome}")
@@ -28,4 +37,4 @@ try:
 finally:
     ppt.Quit()
 
-print(f"\nConcluído! PDFs salvos em: {SAIDA}")
+print(f"\nExecução nº {execucao} concluída! PDFs em: {SAIDA}")
