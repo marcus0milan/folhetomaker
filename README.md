@@ -1,44 +1,68 @@
-# Como montar folhetos
+# Folhetomaker
 
-Este script transforma apresentações do PowerPoint em arquivos PDF prontos para imprimir como folheto. Ele monta **3 slides por página**, com linhas ao lado para anotações.
+Transforma apresentações do PowerPoint **e arquivos PDF** em folhetos A4 prontos para imprimir: por padrão **3 slides por página**, com linhas ao lado para anotações.
 
-## Antes de começar
+O folheto é gerado em formato vetorial, então o texto fica nítido na impressão e o arquivo final fica leve.
 
-- Use um computador com **Windows** e o **Microsoft PowerPoint** instalado.
-- Instale o **Python 3.8 ou superior**.
-- Instale as bibliotecas necessárias. Abra o Prompt de Comando e execute:
+## Requisitos
+
+- **Python 3.8 ou superior**.
+- Bibliotecas (no Prompt de Comando):
 
   ```bat
-  py -m pip install pywin32 Pillow
+  py -m pip install pymupdf pywin32
   ```
 
-## Passo a passo
+- **Microsoft PowerPoint** (Windows), necessário só para converter apresentações. Para PDFs não é preciso.
 
-1. Coloque o arquivo `folhetomaker.py` e as apresentações `.ppt` ou `.pptx` na mesma pasta.
-2. Feche os arquivos do PowerPoint que serão convertidos.
-3. Abra o Prompt de Comando nessa pasta.
-4. Execute:
+## Formatos aceitos
 
-   ```bat
-   py folhetomaker.py
-   ```
+- PowerPoint: `.pptx`, `.ppt`, `.pptm`, `.ppsx`, `.pps`, `.ppsm`, `.potx`, `.pot`, `.potm`, `.odp`
+- PDF: `.pdf` (cada página é tratada como um slide)
 
-5. Aguarde o processamento. O resultado aparece na tela para cada apresentação.
-6. Quando a mensagem pedir, pressione **Enter** para fechar a janela.
-7. Abra a pasta de saída criada, por exemplo `slides1`. Os PDFs estarão dentro dela.
+## Como usar
+
+**Jeito mais simples:** coloque o `folhetomaker.py` na pasta das apresentações e dê dois cliques nele, ou rode:
+
+```bat
+py folhetomaker.py
+```
+
+**Arrastar e soltar:** arraste arquivos ou pastas para cima do `folhetomaker.py`.
+
+**Pela linha de comando:**
+
+```bat
+py folhetomaker.py aula1.pptx apostila.pdf      :: só esses arquivos
+py folhetomaker.py C:\Aulas                       :: todos os arquivos de uma pasta
+py folhetomaker.py C:\Aulas -n 6                  :: 6 slides por página
+py folhetomaker.py aula.pptx -n 1                 :: 1 slide grande + linhas embaixo
+py folhetomaker.py C:\Aulas -o C:\Impressao       :: escolher a pasta de saída
+```
+
+### Opções
+
+| Opção | O que faz |
+|---|---|
+| `-n`, `--por-pagina` | Slides por página: `1`, `2`, `3`, `4`, `6` ou `9` (padrão `3`). Há linhas de anotação nos modos `1` e `3`. |
+| `-o`, `--saida` | Pasta de saída. Sem ela, é criada uma pasta nova (`slides1`, `slides2`...) ao lado dos arquivos. |
+| `--sem-linhas` | Não desenha as linhas de anotação. |
+| `--sem-cabecalho` | Não coloca o nome do arquivo no topo nem o número da página no rodapé. |
+| `--incluir-ocultos` | Inclui os slides ocultos (por padrão eles ficam de fora, como na impressão do PowerPoint). |
+| `--sem-pausa` | Não espera o Enter no final (útil em scripts e automações). |
 
 ## O que o script faz
 
-- Processa todos os arquivos `.ppt` e `.pptx` encontrados na pasta.
-- Cria uma pasta nova para cada execução (`slides1`, `slides2` e assim por diante), sem substituir as pastas de resultados anteriores.
-- Tenta primeiro usar a exportação de folhetos do PowerPoint. Se esse método falhar, tenta montar o PDF por um método alternativo.
-- Mostra `OK` quando um arquivo é convertido e `ERRO` quando não consegue convertê-lo.
+- Converte cada arquivo e mostra `OK` ou `ERRO`. Um erro em um arquivo não interrompe os demais.
+- Nunca altera as apresentações originais (elas são abertas como somente leitura).
+- Nunca sobrescreve resultados: se já existir um PDF com o mesmo nome, cria `nome (2).pdf`.
+- Se o PowerPoint já estava aberto, ele **não** é fechado no final.
+- Para gerar o PDF dos slides, tenta a exportação do PowerPoint; se ela falhar, salva como PDF; em último caso, exporta cada slide como imagem.
+- Termina com código `0` (tudo OK), `1` (nada encontrado ou faltam bibliotecas) ou `2` (algum arquivo com erro).
 
 ## Se algo der errado
 
-- **“Nenhum arquivo PPTX encontrado”**: confira se as apresentações estão na mesma pasta que o script e se são arquivos `.ppt` ou `.pptx`.
-- **Erro ao abrir ou converter**: confirme que o PowerPoint está instalado e que o arquivo abre normalmente. Feche também qualquer janela do PowerPoint que esteja usando o arquivo.
-- **Biblioteca ausente**: execute novamente `py -m pip install pywin32 Pillow`.
-- **Um arquivo apresentou erro**: veja os detalhes exibidos no Prompt de Comando. Os outros arquivos ainda podem ser processados.
-
-Não apague nem mova os arquivos originais durante o processamento. O script cria PDFs; ele não altera as apresentações.
+- **"Nenhuma apresentação ou PDF encontrado"**: confira a pasta e a extensão dos arquivos.
+- **"PyMuPDF não instalada" / "pywin32 não instalado"**: rode `py -m pip install pymupdf pywin32`.
+- **"não foi possível iniciar o PowerPoint"**: confirme que o PowerPoint está instalado e abre normalmente.
+- **Erro em um arquivo específico**: verifique se ele abre no PowerPoint (ou no leitor de PDF) e se não tem senha. Para ver os detalhes técnicos do erro, rode antes `set FOLHETO_DEBUG=1`.
